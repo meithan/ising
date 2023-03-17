@@ -449,7 +449,8 @@ void IsingModel::doGeneration () {
 int IsingModel::compute_energy_cell (int i, int j, bool from_copy) {
 
   int ip, im, jp, jm;
-  int energy;
+  int energy, neigh_sum;
+  int** _grid;
 
   ip = i+1;
   im = i-1;
@@ -460,30 +461,24 @@ int IsingModel::compute_energy_cell (int i, int j, bool from_copy) {
   if      (j == 0) jm = NGRID-1;
   else if (j == NGRID-1) jp = 0;
 
-  energy = 0;
   if (from_copy) {
-    if (!useDeadCells || !dead_cells[ip][j])
-      energy += grid_copy[ip][j];
-    if (!useDeadCells || !dead_cells[im][j])
-      energy += grid_copy[im][j];
-    if (!useDeadCells || !dead_cells[i][jp])
-      energy += grid_copy[i][jp];
-    if (!useDeadCells || !dead_cells[i][jm])
-      energy += grid_copy[i][jm];
-    energy = -grid_copy[i][j]*energy;
-    return energy;
+    _grid = grid_copy;
   } else {
-    if (!useDeadCells || !dead_cells[ip][j])
-      energy += grid[ip][j];
-    if (!useDeadCells || !dead_cells[im][j])
-      energy += grid[im][j];
-    if (!useDeadCells || !dead_cells[i][jp])
-      energy += grid[i][jp];
-    if (!useDeadCells || !dead_cells[i][jm])
-      energy += grid[i][jm];
-    energy = -grid[i][j]*energy;
-    return energy;
+    _grid = grid;
   }
+
+  neigh_sum = 0;
+  if (!useDeadCells || !dead_cells[ip][j])
+    neigh_sum += _grid[ip][j];
+  if (!useDeadCells || !dead_cells[im][j])
+    neigh_sum += _grid[im][j];
+  if (!useDeadCells || !dead_cells[i][jp])
+    neigh_sum += _grid[i][jp];
+  if (!useDeadCells || !dead_cells[i][jm])
+    neigh_sum += _grid[i][jm];
+  energy = -_grid[i][j] * neigh_sum;
+  
+  return energy;
 
 }
 
