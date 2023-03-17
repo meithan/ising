@@ -15,7 +15,7 @@ class IsingModel {
 
   // The critical temperature in units of J/k
   // Tc = 2/ln(1+sqrt(2))
-  static const double TEMP_CRIT = 2.26918531421302;
+  static constexpr double TEMP_CRIT = 2.26918531421302;
 
   /* MEMBER VARIABLES */
 
