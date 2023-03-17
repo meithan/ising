@@ -487,8 +487,8 @@ int IsingModel::compute_energy_cell (int i, int j, bool from_copy) {
 // Attempts to flip cell (i,j)
 // This will compute the change in energy the flip would produce
 // and then apply the Metropolis algorithm:
-// 1) if the new energy is lower, always flip
-// 2) if the new energy is higher, flip with probability e^(-Ediff/temperature)
+// 1) if the new energy is lower or unchanged, always flip
+// 2) if the new energy is higher, flip with probability e^(-deltaE/T)
 // The from_copy boolean determines if the neighbor information is pulled from
 // the current state of the grid or from a copy of the previous generation's
 // grid.
@@ -507,11 +507,11 @@ void IsingModel::tryCellFlip (int i, int j, bool from_copy) {
   if (trans_dynamics == DYNAMICS_METROPOLIS) {
 
     // Metropolis dynamics
-    if (new_E < old_E) {
-      // New energy is lower: always flip cell
-      prob = 1;
+    if (new_E <= old_E) {
+      // New energy is lower or unchanged: always flip cell
+      prob = 1.0;
     } else {
-      // New energy is higher or unchanged: try thermal flip
+      // New energy is higher: try thermal flip
       prob = exp(-deltaE/TEMP);
     }
 
@@ -531,27 +531,12 @@ void IsingModel::tryCellFlip (int i, int j, bool from_copy) {
 
   if (do_flip) {
 
-    // Flip cell and update global energy and magnetization
-    ip = i+1;
-    im = i-1;
-    jp = j+1;
-    jm = j-1;
-    if      (i == 0) im = NGRID-1;
-    else if (i == NGRID-1) ip = 0;
-    if      (j == 0) jm = NGRID-1;
-    else if (j == NGRID-1) jp = 0;
-    global_energy -= compute_energy_cell(i, j, from_copy);
-    global_energy -= compute_energy_cell(ip, j, from_copy);
-    global_energy -= compute_energy_cell(im, j, from_copy);
-    global_energy -= compute_energy_cell(i, jp, from_copy);
-    global_energy -= compute_energy_cell(i, jm, from_copy);
+    // Flip cell
     grid[i][j] *= -1;
+
+    // Update global energy and magnetization
     global_magnetization += grid[i][j]*2/(double)(NCELLS);
-    global_energy += compute_energy_cell(i, j, from_copy);
-    global_energy += compute_energy_cell(ip, j, from_copy);
-    global_energy += compute_energy_cell(im, j, from_copy);
-    global_energy += compute_energy_cell(i, jp, from_copy);
-    global_energy += compute_energy_cell(i, jm, from_copy);
+    global_energy += deltaE;
 
     // Update magnetization of sample if cell in list
     if (track_samples) {
