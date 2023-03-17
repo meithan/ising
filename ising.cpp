@@ -111,7 +111,7 @@ int main(int argc, char* argv[]) {
     // Dump state and grid of start state
     seriesfile << 0;
     seriesfile << " " << scientific << model.global_magnetization;
-    seriesfile << " " << model.global_energy;
+    seriesfile << " " << (double)(model.global_energy)/model.NCELLS;
     seriesfile << endl;
     gridsfile << "# GEN 0" << endl;
     for (int i = 0; i < NGRID; i++) {
@@ -130,7 +130,7 @@ int main(int argc, char* argv[]) {
       model.doGeneration();
       seriesfile << gen;
       seriesfile << " " << scientific << model.global_magnetization;
-      seriesfile << " " << model.global_energy;
+      seriesfile << " " << (double)(model.global_energy)/model.NCELLS;
       seriesfile << endl;
       if (gen % DUMP_GRID_EVERY == 0) {
         gridsfile << "# GEN " << gen << endl;
