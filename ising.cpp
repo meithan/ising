@@ -131,7 +131,7 @@ int main(int argc, char* argv[]) {
       for (int j = 0; j < NGRID; j++) {
         if (model.grid[i][j] == 1) gridsfile << 1;
         else gridsfile << 0;
-        if (j < NGRID - 1) gridsfile << " ";
+        // if (j < NGRID - 1) gridsfile << " ";
       }
       gridsfile << endl;
     }
@@ -151,7 +151,7 @@ int main(int argc, char* argv[]) {
           for (int j = 0; j < NGRID; j++) {
             if (model.grid[i][j] == 1) gridsfile << 1;
             else gridsfile << 0;
-            if (j < NGRID - 1) gridsfile << " ";
+            // if (j < NGRID - 1) gridsfile << " ";
           }
           gridsfile << endl;
         }
