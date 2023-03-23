@@ -67,7 +67,7 @@ int main(int argc, char* argv[]) {
 
   printf("Temperature T=%f\n", TEMP);
   printf("%ix%i Ising model\n", NGRID, NGRID);
-  printf("%i runs\n", NUM_RUNS);
+  printf("%i run%s\n", NUM_RUNS, NUM_RUNS > 1 ? "s" : "");
   printf("%i generations\n", NUM_GENS);
   printf("Datadir is %s\n", datadir2);
 
@@ -86,7 +86,11 @@ int main(int argc, char* argv[]) {
     cout << asctime(localtime(&ltime));
 
     // Open series file for this run and write header
-    sprintf(fname, "%s/%s_r%03i_series.dat", datadir2, tempstr, run);
+    if (NUM_RUNS == 1) {
+      sprintf(fname, "%s/%s_series.dat", datadir2, tempstr);
+    } else {
+      sprintf(fname, "%s/%s_r%03i_series.dat", datadir2, tempstr, run);
+    }
     seriesfile.open(fname);
     printf("Recording time series in file %s\n",fname);
     seriesfile << "# " << asctime(localtime(&ltime));
@@ -98,7 +102,11 @@ int main(int argc, char* argv[]) {
     seriesfile << "# 3: energy per site for this gen\n";
 
     // Open grid file for this run and write header
-    sprintf(fname, "%s/%s_r%03i_grids.dat", datadir2, tempstr, run);
+    if (NUM_RUNS == 1) {
+      sprintf(fname, "%s/%s_grids.dat", datadir2, tempstr);
+    } else {
+      sprintf(fname, "%s/%s_r%03i_grids.dat", datadir2, tempstr, run);
+    }
     printf("Recording grids in file %s\n",fname);
     gridsfile.open(fname);
     gridsfile << "# " << asctime(localtime(&ltime));
@@ -157,9 +165,11 @@ int main(int argc, char* argv[]) {
 
   }
 
-  printf("\n=== All runs complete! ===\n");
-  ltime = time(NULL);
-  printf("Finished: %s", asctime(localtime(&ltime)));
+  if (NUM_RUNS > 1) {
+    printf("\n=== All runs complete! ===\n");
+    ltime = time(NULL);
+    printf("Finished: %s", asctime(localtime(&ltime)));
+  }
 
   return 0;
 
