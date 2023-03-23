@@ -41,11 +41,15 @@ const int DUMP_GRID_EVERY = 1000;
 int main(int argc, char* argv[]) {
 
   int gen, run;
+  clock_t sclock, rclock, lclock;
   time_t ltime;
+  double elapsed;
   char fname[192];
   char datadir2[128];
   char tempstr[7];
   ofstream seriesfile, gridsfile;
+
+  sclock = clock();
 
   // Read temperature from command line
   if (argc < 2) {
@@ -56,7 +60,7 @@ int main(int argc, char* argv[]) {
   }
   sprintf(tempstr, "T%.3f", TEMP);
 
-  // Append slash to datadir if needed
+  // Remove slash to datadir if present
   if (datadir[strlen(datadir)-1] == '/') {
     strncat(datadir2, datadir, strlen(datadir)-1);
   } else {
@@ -66,13 +70,18 @@ int main(int argc, char* argv[]) {
   IsingModel model(NGRID, TEMP);
 
   printf("Temperature T=%f\n", TEMP);
-  printf("%ix%i Ising model\n", NGRID, NGRID);
+  printf("%i x %i Ising model\n", NGRID, NGRID);
   printf("%i run%s\n", NUM_RUNS, NUM_RUNS > 1 ? "s" : "");
   printf("%i generations\n", NUM_GENS);
-  printf("Datadir is %s\n", datadir2);
+  printf("Datadir is %s/\n", datadir2);
 
   // Loop over runs
   for (run = 0; run < NUM_RUNS; run++) {
+
+    printf("\n=== Starting run %i/%i ===\n", run+1, NUM_RUNS);
+    rclock = clock();
+    ltime = time(NULL);
+    cout << asctime(localtime(&ltime));
 
     // Reset model
     model.reset_stats();
@@ -80,10 +89,6 @@ int main(int argc, char* argv[]) {
     model.set_magnetization(INIT_MAGN);
     model.update_energy();
     model.update_magnetization();
-
-    printf("\n=== Starting run %i/%i ===\n", run+1, NUM_RUNS);
-    ltime = time(NULL);
-    cout << asctime(localtime(&ltime));
 
     // Open series file for this run and write header
     if (NUM_RUNS == 1) {
@@ -130,8 +135,8 @@ int main(int argc, char* argv[]) {
       }
       gridsfile << endl;
     }
-    printf("gen 0 | E = %f | M = %f\n", ((double)model.global_energy)/model.NCELLS,
-        model.global_magnetization);
+    elapsed = (double)(clock()-rclock)/CLOCKS_PER_SEC;
+    printf("[%.3f] gen 0 | E = %f | M = %f\n", elapsed, ((double)model.global_energy)/model.NCELLS, model.global_magnetization);
 
     // Simulate NUM_GENS generations
     for (gen = 1; gen <= NUM_GENS; gen++) {
@@ -152,13 +157,15 @@ int main(int argc, char* argv[]) {
         }
       }
       if (gen % (NUM_GENS/10) == 0) {
-        printf("gen %i | E = %f | M = %f\n", gen, ((double)model.global_energy)/model.NCELLS,
-            model.global_magnetization);
+        elapsed = (double)(clock()-rclock)/CLOCKS_PER_SEC;
+        printf("[%.3f] gen %i | E = %f | M = %f\n", elapsed, gen, ((double)model.global_energy)/model.NCELLS, model.global_magnetization);
       }
     }
 
     ltime = time(NULL);
-    cout << asctime(localtime(&ltime));
+    elapsed = (double)(clock()-rclock)/CLOCKS_PER_SEC;
+    printf("%s", asctime(localtime(&ltime)));
+    printf("Run completed in %.3f s\n", elapsed);
     printf("=== Run %i/%i complete ===\n", run+1, NUM_RUNS);
     seriesfile.close();
     gridsfile.close();
@@ -168,7 +175,9 @@ int main(int argc, char* argv[]) {
   if (NUM_RUNS > 1) {
     printf("\n=== All runs complete! ===\n");
     ltime = time(NULL);
+    elapsed = (double)(clock()-sclock)/CLOCKS_PER_SEC;
     printf("Finished: %s", asctime(localtime(&ltime)));
+    printf("Total elapsed: %.1f s\n", elapsed);
   }
 
   return 0;
