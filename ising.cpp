@@ -43,6 +43,7 @@ const float INIT_MAGN = 0.0;
 const char datadir[] = ".";
 
 // Generations between full grid dumps
+// Set this value to zero for no grid dumps
 const int DUMP_GRID_EVERY = 1000;
 
 /*===================================*/
@@ -131,16 +132,18 @@ int main(int argc, char* argv[]) {
     seriesfile << "# 3: energy per site for this gen\n";
 
     // Open grid file for this run and write header
-    if (NUM_RUNS == 1) {
-      sprintf(fname, "%s/%s_grids.dat", datadir2, tempstr);
-    } else {
-      sprintf(fname, "%s/%s_r%03i_grids.dat", datadir2, tempstr, run);
+    if (DUMP_GRID_EVERY > 0) {
+      if (NUM_RUNS == 1) {
+        sprintf(fname, "%s/%s_grids.dat", datadir2, tempstr);
+      } else {
+        sprintf(fname, "%s/%s_r%03i_grids.dat", datadir2, tempstr, run);
+      }
+      printf("Recording grids in file %s\n",fname);
+      gridsfile.open(fname);
+      gridsfile << "# " << asctime(localtime(&ltime));
+      gridsfile << "# Temperature = " << fixed << TEMP << "\n";
+      gridsfile << "# Grid N = " << NGRID << "\n";
     }
-    printf("Recording grids in file %s\n",fname);
-    gridsfile.open(fname);
-    gridsfile << "# " << asctime(localtime(&ltime));
-    gridsfile << "# Temperature = " << fixed << TEMP << "\n";
-    gridsfile << "# Grid N = " << NGRID << "\n";
 
     printf("Initial magnetization M=%f\n", model.global_magnetization);
     printf("Simulating %i generations ...\n", NUM_GENS);
@@ -150,14 +153,16 @@ int main(int argc, char* argv[]) {
     seriesfile << " " << scientific << model.global_magnetization;
     seriesfile << " " << (double)(model.global_energy)/model.NCELLS;
     seriesfile << endl;
-    gridsfile << "# GEN 0" << endl;
-    for (int i = 0; i < NGRID; i++) {
-      for (int j = 0; j < NGRID; j++) {
-        if (model.grid[i][j] == 1) gridsfile << 1;
-        else gridsfile << 0;
-        // if (j < NGRID - 1) gridsfile << " ";
+    if (DUMP_GRID_EVERY > 0) {
+      gridsfile << "# GEN 0" << endl;
+      for (int i = 0; i < NGRID; i++) {
+        for (int j = 0; j < NGRID; j++) {
+          if (model.grid[i][j] == 1) gridsfile << 1;
+          else gridsfile << 0;
+          // if (j < NGRID - 1) gridsfile << " ";
+        }
+        gridsfile << endl;
       }
-      gridsfile << endl;
     }
     elapsed = (double)(clock()-rclock)/CLOCKS_PER_SEC;
     printf("[%.3f] gen 0 | E = %f | M = %f\n", elapsed, ((double)model.global_energy)/model.NCELLS, model.global_magnetization);
@@ -169,7 +174,7 @@ int main(int argc, char* argv[]) {
       seriesfile << " " << scientific << model.global_magnetization;
       seriesfile << " " << (double)(model.global_energy)/model.NCELLS;
       seriesfile << endl;
-      if (gen % DUMP_GRID_EVERY == 0) {
+      if (DUMP_GRID_EVERY > 0 && gen % DUMP_GRID_EVERY == 0) {
         gridsfile << "# GEN " << gen << endl;
         for (int i = 0; i < NGRID; i++) {
           for (int j = 0; j < NGRID; j++) {
@@ -192,7 +197,7 @@ int main(int argc, char* argv[]) {
     printf("Run completed in %.3f s\n", elapsed);
     printf("=== Run %i/%i complete ===\n", run+1, NUM_RUNS);
     seriesfile.close();
-    gridsfile.close();
+    if (DUMP_GRID_EVERY > 0) gridsfile.close();
 
   }
 
