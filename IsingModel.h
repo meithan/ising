@@ -5,17 +5,19 @@
 || Ising Model class declaration ||
 \\===============================*/
 
+// The critical temperature in units of J/k
+// Tc = 2/ln(1+sqrt(2))
+const double TEMP_CRIT = 2.26918531421302;
+
+// Named constants for the initial magnetization mode
+const int INIT_MAGN_AUTO = 0;
+const int INIT_MAGN_MANUAL = 1;
+
 class IsingModel {
 
   public:
 
   /*==========================================================================*/
-
-  /* STATIC CONSTANTS */
-
-  // The critical temperature in units of J/k
-  // Tc = 2/ln(1+sqrt(2))
-  static constexpr double TEMP_CRIT = 2.26918531421302;
 
   /* MEMBER VARIABLES */
 
