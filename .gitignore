@@ -30,3 +30,7 @@
 *.exe
 *.out
 *.app
+ising
+
+# Output data files
+*.dat
