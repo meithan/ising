@@ -26,8 +26,17 @@ const int NUM_GENS = 10000;
 // Number of runs to simulate
 const int NUM_RUNS = 1;
 
-// Initial magnetization (-1 <= INIT_MAGN <= 1)
-// Set INIT_MAGN = 0 for random
+// Initial magnetization -- determines how the initial spin states are set
+// Accepted values for INIT_MAGN_MODE: INIT_MAGN_AUTO or INIT_MAGN_MANUAL
+// If INIT_MAGN_AUTO, the initial magnetization will be set to the exact
+// equilibrium value, so as to shorten the initial transient: this is M = 0
+// when T >= Tc, or an expression below Tc.
+// If instead INIT_MAGN_MANUAL is used, the user specifies the initial
+// magnetization through INIT_MAGN (must be in [-1, 1]).
+// In both cases, the spins will be initially set randomly but weighted so
+// that the resulting initial magnetization is near (but not exactly) the
+// desired value.
+const int INIT_MAGN_MODE = INIT_MAGN_AUTO;
 const float INIT_MAGN = 0.0;
 
 // Data directory -- trailing slash optional
@@ -44,6 +53,7 @@ int main(int argc, char* argv[]) {
   clock_t sclock, rclock, lclock;
   time_t ltime;
   double elapsed;
+  double _init_magn;
   char fname[192];
   char datadir2[128];
   char tempstr[7];
@@ -69,6 +79,20 @@ int main(int argc, char* argv[]) {
   // Create model
   IsingModel model(NGRID, TEMP);
 
+  // Determine initial magnetization
+  if (INIT_MAGN_MODE == INIT_MAGN_AUTO) {
+    if (TEMP < TEMP_CRIT) {
+      _init_magn = pow(1 - pow(sinh(2/TEMP), -4), 0.125);
+    } else {
+      _init_magn = 0.0;
+    }
+  } else if ((INIT_MAGN_MODE == INIT_MAGN_MANUAL)) {
+    _init_magn = INIT_MAGN;
+  } else {
+    printf("INIT_MAGN_MODE must be either INIT_MAGN_AUTO or INIT_MAGN_MANUAL. Aborting.\n");
+    return 1;
+  }
+
   printf("Temperature T=%f\n", TEMP);
   printf("%i x %i Ising model\n", NGRID, NGRID);
   printf("%i run%s\n", NUM_RUNS, NUM_RUNS > 1 ? "s" : "");
@@ -86,7 +110,7 @@ int main(int argc, char* argv[]) {
     // Reset model
     model.reset_stats();
     model.cur_gen = 0;
-    model.set_magnetization(INIT_MAGN);
+    model.set_magnetization(_init_magn);
     model.update_energy();
     model.update_magnetization();
 
